@@ -31,39 +31,94 @@ enum HandleEventMsg {
 }
 
 #[derive(Clone)]
-enum ViewState {
+enum Views {
     Main,
     Workflows
 }
 
-impl ViewState {
-    fn next(&self) -> ViewState {
+impl Views {
+    fn next(&self) -> Views {
         match self {
-            ViewState::Main => ViewState::Workflows,
-            ViewState::Workflows => ViewState::Main
+            Views::Main => Views::Workflows,
+            Views::Workflows => Views::Main
         }
     }
 }
 
 
-impl Display for ViewState {
+impl Display for Views {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ViewState::Main => write!(f, "Main"),
-            ViewState::Workflows => write!(f, "Workflows"),
+            Views::Main => write!(f, "Main"),
+            Views::Workflows => write!(f, "Workflows"),
         }
     }
 }
+
+
+struct StatefulList<T> {
+    state: ListState,
+    items: Vec<T>,
+}
+
+impl<T> StatefulList<T> {
+    fn with_items(items: Vec<T>) -> Self {
+        StatefulList {
+            state: ListState::default(),
+            items,
+        }
+    }
+
+    fn next(&mut self) {
+        let i = match self.state.selected() {
+            Some(i) => {
+                if i >= self.items.len() -1 {
+                    0
+                } else {
+                    i + 1
+                }
+            },
+            None => 0,
+        };
+        self.state.select(Some(i));
+
+
+    }
+
+    fn previous(&mut self) {
+        let i = match self.state.selected() {
+            Some(i) => {
+                if i == 0 {
+                    self.items.len() - 1
+                } else {
+                    i - 1
+                }
+            }
+            None => 0,
+        };
+        self.state.select(Some(i));
+    }
+
+    fn unselect(&mut self) {
+        self.state.select(None);
+    }
+
+
+}
+
 struct App<'a> {
-    view_state: ViewState,
+    view_state: Views,
     terminal: &'a mut Terminal<CrosstermBackend<io::Stdout>>,
+    workflows_items: StatefulList<(&'a str, &'a str)>,
 }
 
 impl App<'_> {
     fn new(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> App {
         App {
-            view_state: ViewState::Main,
-            terminal: terminal
+            view_state: Views::Main,
+            terminal: terminal,
+            workflows_items: StatefulList::with_items(vec![("Workflow 1", "id:1234"), ("Workflow 2", "id:1552")]),
+        
         }
     }
 
@@ -87,15 +142,12 @@ impl App<'_> {
 
 
     fn draw(self: &mut Self, input: &str) {
-        
-
         let view_state = self.view_state.clone();
 
         self.terminal.draw(move |rect| {
             let size = rect.size();
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
-                // .margin(2)
                 .constraints(
                     [
                         Constraint::Min(2),
@@ -106,13 +158,33 @@ impl App<'_> {
                 .split(size);
         
 
+            
+
+
+                let items: Vec<ListItem> = self.workflows_items.items.iter().map(|(name, id)| {
+                    ListItem::new(Spans::from(vec![Span::raw(format!("{} - {}", name, id))]))
+                }).collect();
+
+                let items = List::new(items)
+                    .block(Block::default().borders(Borders::ALL).title("List"))
+                    .highlight_style(
+                        Style::default()
+                            .bg(Color::LightGreen)
+                            .add_modifier(Modifier::BOLD),
+                    )
+                    .highlight_symbol(">> ");
+
+            // We can now render the item list
+            rect.render_stateful_widget(items, chunks[0], &mut self.workflows_items.state);
+
+
             let btm_input_bar = Paragraph::new(input)
                 .style(Style::default().fg(Color::LightCyan))
                 .alignment(Alignment::Left)
                 .block(
                     Block::default()
                         .borders(Borders::BOTTOM)
-                        .style(Style::default().fg(App::border_colour(&view_state, &ViewState::Main)))
+                        .style(Style::default().fg(App::border_colour(&view_state, &Views::Main)))
                         .title("CMD")
                         .border_type(BorderType::Plain),
                 );
@@ -124,7 +196,7 @@ impl App<'_> {
                 .block(
                     Block::default()
                         .borders(Borders::BOTTOM)
-                        .style(Style::default().fg(App::border_colour(&view_state, &ViewState::Workflows)))
+                        .style(Style::default().fg(App::border_colour(&view_state, &Views::Workflows)))
                         .title(format!("{}", view_state))
                         .border_type(BorderType::Plain),
                 );
@@ -135,17 +207,17 @@ impl App<'_> {
         }).expect("hmm");
     }
 
-    fn border_colour(view_state: &ViewState, this_view: &ViewState) -> Color {
+    fn border_colour(view_state: &Views, this_view: &Views) -> Color {
         match view_state {
-            ViewState::Main => 
+            Views::Main => 
                 match this_view {
-                    ViewState::Main => Color::LightCyan,
-                    ViewState::Workflows => Color::LightGreen,
+                    Views::Main => Color::LightRed,
+                    Views::Workflows => Color::Gray,
                 },
-            ViewState::Workflows => 
+            Views::Workflows => 
                 match this_view {
-                    ViewState::Main => Color::LightGreen,
-                    ViewState::Workflows => Color::LightCyan,
+                    Views::Main => Color::Gray,
+                    Views::Workflows => Color::LightRed,
                 }
         }
     }
@@ -159,7 +231,6 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     enable_raw_mode().expect("can run raw mode");
 
     let rx = spawn_input_thread();
-
     let stdout = io::stdout();
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
@@ -201,11 +272,6 @@ fn spawn_input_thread() -> Receiver<Event<KeyEvent>> {
                 if let Ok(_) = tx.send(Event::Tick) {
                     last_tick = Instant::now();
                 }
-            
-
-
-
-
             }
         }
     });
