@@ -1,12 +1,8 @@
-// TODO: Implement the UI
-// mod ui;
-
-
+#![deny(warnings)]
 
 mod config;
 
 fn main() {
     // Load the config file
-    let config = config::Config::load();
-
+    let _config = config::Config::load();
 }
