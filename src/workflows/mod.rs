@@ -67,7 +67,11 @@ pub async fn load(config: &config::Config) -> Workflows {
         requests.push(api::list(&repo));
     }
 
-    futures::future::join_all(requests).await;
+    let finished_requests = futures::future::join_all(requests).await;
+
+    for request in finished_requests {
+        println!("{:?}", request);
+    }
 
     Workflows {
         owners: Vec::new(),

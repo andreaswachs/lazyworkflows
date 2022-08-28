@@ -113,52 +113,63 @@ impl APIRequest {
     }
 }
 
-pub async fn list(cfg: &config::Repo) -> String{
-    APIRequest::new()
+pub async fn list(cfg: &config::Repo) -> dsl::ListResponse{
+    let response = APIRequest::new()
         .set_action(&Action::List)
         .use_repo(&cfg)
         .send()
         .await
-        .unwrap()
+        .unwrap();
+
+    dsl::serialize_list(&response)
 }
 
-pub async fn get(cfg: &config::Repo, id: &String) -> String {
+pub async fn get(cfg: &config::Repo, id: &String) -> dsl::GetResponse {
+    let response = 
     APIRequest::new()
         .set_action(&Action::Get)
         .use_repo(&cfg)
         .set_id(id)
         .send()
         .await
-        .unwrap()
+        .unwrap();
+
+    dsl::serialize_get(&response)
 }
 
-pub async fn dispatch(cfg: &config::Repo, id: &String) -> String {
+pub async fn dispatch(cfg: &config::Repo, id: &String) -> dsl::DispatchResponse {
     // TODO: Add support for input
-    APIRequest::new()
+    let response = APIRequest::new()
         .set_action(&Action::Dispatch)
         .use_repo(&cfg)
         .set_id(id)
         .send()
         .await
-        .unwrap()
+        .unwrap();
+
+    dsl::serialize_dispatch(&response)
 }
 
-pub async fn enable(cfg: &config::Repo, id: &String) -> String {
-    APIRequest::new()
+pub async fn enable(cfg: &config::Repo, id: &String) -> dsl::EnableResponse {
+    let response = APIRequest::new()
         .set_action(&Action::Enable)
         .use_repo(&cfg)
         .set_id(id)
         .send()
         .await
-        .unwrap()
+        .unwrap();
+
+    dsl::serialize_enable(&response)
 }
 
-pub async fn disable(cfg: &config::Repo, id: &String) -> String {
-    APIRequest::new()
+pub async fn disable(cfg: &config::Repo, id: &String) -> dsl::DisableResponse {
+    let response = APIRequest::new()
         .set_action(&Action::Disable)
         .use_repo(&cfg)
         .set_id(id)
         .send()
         .await
-        .unwrap()
+        .unwrap();
+    
+    dsl::serialize_disable(&response)
 }

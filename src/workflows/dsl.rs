@@ -1,5 +1,4 @@
-use chrono::{DateTime, Utc, FixedOffset, format::Fixed};
-use serde::{Deserialize, Serialize, Deserializer};
+use serde::{Deserialize, Serialize};
 
 //
 // Get reponse
@@ -46,7 +45,16 @@ pub struct DispatchResponse {
 }
 
 fn serialize<'a, T: Deserialize<'a>>(input: &'a String) -> T {
-    let response: T = serde_json::from_str(input).unwrap();
+    let response: T =  match serde_json::from_str(input) {
+        Ok(v) => v,
+        // The error might be due to receiving an error message from the API
+        Err(e) => {
+            // TODO: Improve on how errors are handled.
+            eprintln!("Attempted to serialize input JSON: {}", input);
+            eprintln!("Got error: {}", e);
+            panic!("Error: {}", e);
+        }
+    };
     response
 }
 
@@ -71,8 +79,6 @@ pub fn serialize_disable(input: &String) -> DisableResponse {
 pub fn serialize_dispatch(input: &String) -> DispatchResponse {
     serialize::<DispatchResponse>(input)
 }
-
-
 
 #[cfg(test)]
 mod tests {
