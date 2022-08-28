@@ -27,6 +27,7 @@ repo = 'lazyworkflows'
 
     /// Constructs the path to the configuration directory
     fn config_dir_path() -> PathBuf {
+
         let mut config_dir = dirs::config_dir().expect("should get path to config dir");
         config_dir.push("lazyworkflows");
         config_dir
@@ -43,6 +44,7 @@ repo = 'lazyworkflows'
 
     /// Creates the path to the configuration file, it trusts that you've checked that it doesn't exist already
     fn create_config_file() {
+
         let file = Config::config_file_path();
         let mut stream = std::fs::File::create(&file).expect("should create config file");
         stream.write_all(Config::default_config().as_bytes()).expect("should write to config file");
@@ -90,11 +92,11 @@ mod tests {
         let path = Config::config_file_path();
         assert!(!path.is_empty());
     }
-
+    
     #[test]
-    fn config_dir_path_should_return_pathbuf() {
-        let path = Config::config_dir_path();
-        assert!(path.is_dir());
-    }
 
+    fn config_dir_path_should_return_non_empty_path() {
+        let path = Config::config_dir_path();
+        assert!(!path.to_str().expect("should return non-empty string").is_empty());
+    }
 }
