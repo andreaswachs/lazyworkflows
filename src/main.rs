@@ -1,8 +1,17 @@
-#![deny(warnings)]
+// #![deny(warnings)]
 
 mod config;
+mod workflows;
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), isize> {
+    println!("main()");
     // Load the config file
-    let _config = config::Config::load();
+    let config = config::Config::load();
+
+    // Load the workflows
+    workflows::load(&config).await;
+
+    println!("hello world from main");
+    Ok(())
 }
