@@ -78,3 +78,35 @@ repo = 'lazyworkflows'
         toml::from_str(&contents).expect("should parse config file")
     }
 }
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn config_file_path_should_return_non_empty_string() {
+        let path = Config::config_file_path();
+        assert!(!path.is_empty());
+    }
+
+    #[test]
+    fn config_dir_path_should_return_pathbuf() {
+        let path = Config::config_dir_path();
+        assert!(path.is_dir());
+    }
+
+    #[test]
+    fn config_file_should_be_created_if_not_exists() {
+        let file = Config::config_file_path();
+        assert!(fs::metadata(&file).is_ok());
+    }
+
+    #[test]
+    fn load_should_return_config_struct_maybe_with_repos() {
+        let config = Config::load();
+        assert!(config.repos.len() >= 1);
+    }
+
+}
