@@ -97,16 +97,4 @@ mod tests {
         assert!(path.is_dir());
     }
 
-    #[test]
-    fn config_file_should_be_created_if_not_exists() {
-        let file = Config::config_file_path();
-        assert!(fs::metadata(&file).is_ok());
-    }
-
-    #[test]
-    fn load_should_return_config_struct_maybe_with_repos() {
-        let config = Config::load();
-        assert!(config.repos.len() >= 1);
-    }
-
 }
