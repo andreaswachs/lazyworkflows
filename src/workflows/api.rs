@@ -1,6 +1,6 @@
 use reqwest::{Client, Request, RequestBuilder};
-use super::config;
-use super::dsl;
+use crate::config;
+use super::dsl::{self, ReponseSerializable};
 
 #[derive(Clone, Debug, Copy)]
 enum Action {
@@ -58,7 +58,7 @@ impl APIRequest {
         self
     }
 
-    fn use_repo(&mut self, repo: &config::Repo) -> &mut Self {
+    fn use_repo(&mut self, repo: &config::manager::Repo) -> &mut Self {
         self.set_owner(&repo.owner)
             .set_repo(&repo.repo)
             .set_token(&repo.token);
@@ -113,7 +113,7 @@ impl APIRequest {
     }
 }
 
-pub async fn list(cfg: &config::Repo) -> dsl::ListResponse{
+pub async fn list(cfg: &config::manager::Repo) -> dsl::ListResponse{
     let response = APIRequest::new()
         .set_action(&Action::List)
         .use_repo(&cfg)
@@ -121,10 +121,10 @@ pub async fn list(cfg: &config::Repo) -> dsl::ListResponse{
         .await
         .unwrap();
 
-    dsl::serialize_list(&response)
+    dsl::ListResponse::serialize_from(&response)
 }
 
-pub async fn get(cfg: &config::Repo, id: &String) -> dsl::GetResponse {
+pub async fn get(cfg: &config::manager::Repo, id: &String) -> dsl::GetResponse {
     let response = 
     APIRequest::new()
         .set_action(&Action::Get)
@@ -134,10 +134,10 @@ pub async fn get(cfg: &config::Repo, id: &String) -> dsl::GetResponse {
         .await
         .unwrap();
 
-    dsl::serialize_get(&response)
+    dsl::GetResponse::serialize_from(&response)
 }
 
-pub async fn dispatch(cfg: &config::Repo, id: &String) -> dsl::DispatchResponse {
+pub async fn dispatch(cfg: &config::manager::Repo, id: &String) -> dsl::DispatchResponse {
     // TODO: Add support for input
     let response = APIRequest::new()
         .set_action(&Action::Dispatch)
@@ -147,10 +147,10 @@ pub async fn dispatch(cfg: &config::Repo, id: &String) -> dsl::DispatchResponse 
         .await
         .unwrap();
 
-    dsl::serialize_dispatch(&response)
+    dsl::DispatchResponse::serialize_from(&response)
 }
 
-pub async fn enable(cfg: &config::Repo, id: &String) -> dsl::EnableResponse {
+pub async fn enable(cfg: &config::manager::Repo, id: &String) -> dsl::EnableResponse {
     let response = APIRequest::new()
         .set_action(&Action::Enable)
         .use_repo(&cfg)
@@ -159,10 +159,10 @@ pub async fn enable(cfg: &config::Repo, id: &String) -> dsl::EnableResponse {
         .await
         .unwrap();
 
-    dsl::serialize_enable(&response)
+    dsl::EnableResponse::serialize_from(&response)
 }
 
-pub async fn disable(cfg: &config::Repo, id: &String) -> dsl::DisableResponse {
+pub async fn disable(cfg: &config::manager::Repo, id: &String) -> dsl::DisableResponse {
     let response = APIRequest::new()
         .set_action(&Action::Disable)
         .use_repo(&cfg)
@@ -171,5 +171,5 @@ pub async fn disable(cfg: &config::Repo, id: &String) -> dsl::DisableResponse {
         .await
         .unwrap();
     
-    dsl::serialize_disable(&response)
+    dsl::DisableResponse::serialize_from(&response)
 }

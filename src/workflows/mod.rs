@@ -1,8 +1,7 @@
-
 use super::config;
 
-mod api;
 mod dsl;
+mod api;
 
 pub struct Workflow {
     name: Option<String>,
@@ -61,7 +60,7 @@ pub struct Workflows {
    Public API functions regarding ALL workflows
 */
 
-pub async fn load(config: &config::Config) -> Workflows {
+pub async fn load(config: &config::manager::Config) -> Workflows {
     let mut requests = Vec::new();
     for repo in config.repos.iter() {
         requests.push(api::list(&repo));

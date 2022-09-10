@@ -10,7 +10,7 @@ pub struct Repo {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct Config {
+pub(crate) struct Config {
     pub repos: Vec<Repo>,
 }
 

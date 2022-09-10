@@ -13,7 +13,7 @@ pub struct WorkflowReponse {
     badge_url: String
 }
 
-trait ReponseSerializable<T>
+pub trait ReponseSerializable<T>
 where for<'a> T: Deserialize<'a> {
     fn serialize_from(input: &str) -> T {
         serialize(input)
