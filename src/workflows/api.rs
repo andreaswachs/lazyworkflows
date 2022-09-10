@@ -69,11 +69,25 @@ impl APIRequest {
         match self.action {
             Some(action) => 
                 match action {
-                    Action::List => format!("https://api.github.com/repos/{}/{}/actions/workflows", self.owner.as_ref().unwrap(), self.repo.as_ref().unwrap()),
-                    Action::Get => format!("https://api.github.com/repos/{}/{}/actions/workflows/{}", self.owner.as_ref().unwrap(), self.repo.as_ref().unwrap(), self.id.as_ref().unwrap()),
-                    Action::Dispatch => format!("https://api.github.com/repos/{}/{}/actions/workflows/{}/dispatches", self.owner.as_ref().unwrap(), self.repo.as_ref().unwrap(), self.id.as_ref().unwrap()),
-                    Action::Enable => format!("https://api.github.com/repos/{}/{}/actions/workflows/{}/enable", self.owner.as_ref().unwrap(), self.repo.as_ref().unwrap(), self.id.as_ref().unwrap()),
-                    Action::Disable => format!("https://api.github.com/repos/{}/{}/actions/workflows/{}/disable", self.owner.as_ref().unwrap(), self.repo.as_ref().unwrap(), self.id.as_ref().unwrap()),
+                    Action::List => format!("https://api.github.com/repos/{}/{}/actions/workflows", 
+                        self.owner.as_ref().unwrap(), 
+                        self.repo.as_ref().unwrap()),
+                    Action::Get => format!("https://api.github.com/repos/{}/{}/actions/workflows/{}", 
+                        self.owner.as_ref().unwrap(), 
+                        self.repo.as_ref().unwrap(), 
+                        self.id.as_ref().unwrap()),
+                    Action::Dispatch => format!("https://api.github.com/repos/{}/{}/actions/workflows/{}/dispatches", 
+                        self.owner.as_ref().unwrap(), 
+                        self.repo.as_ref().unwrap(), 
+                        self.id.as_ref().unwrap()),
+                    Action::Enable => format!("https://api.github.com/repos/{}/{}/actions/workflows/{}/enable", 
+                        self.owner.as_ref().unwrap(), 
+                        self.repo.as_ref().unwrap(), 
+                        self.id.as_ref().unwrap()),
+                    Action::Disable => format!("https://api.github.com/repos/{}/{}/actions/workflows/{}/disable", 
+                        self.owner.as_ref().unwrap(), 
+                        self.repo.as_ref().unwrap(), 
+                        self.id.as_ref().unwrap()),
                 }
             None => panic!("No action set"),
         }
