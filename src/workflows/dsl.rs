@@ -1,9 +1,4 @@
 use serde::{Deserialize, Serialize};
-
-//
-// Get reponse
-//
-
 #[derive(Default, Serialize, Deserialize, Debug)]
 pub struct WorkflowReponse {
     id: i32,
@@ -18,9 +13,22 @@ pub struct WorkflowReponse {
     badge_url: String
 }
 
+trait ReponseSerializable<T>
+where for<'a> T: Deserialize<'a> {
+    fn serialize_from(input: &str) -> T {
+        serialize(input)
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GetResponse {
     workflow: WorkflowReponse,
+}
+
+impl ReponseSerializable<GetResponse> for GetResponse {
+    fn serialize_from(input: &str) -> GetResponse {
+        GetResponse { workflow: serialize(input) }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -29,22 +37,31 @@ pub struct ListResponse {
     workflows: Vec<WorkflowReponse>,
 }
 
+impl ReponseSerializable<ListResponse> for ListResponse {}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EnableResponse {
     status: i32
 }
+
+impl ReponseSerializable<EnableResponse> for EnableResponse {}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DisableResponse {
     status: i32
 }
 
+
+impl ReponseSerializable<DisableResponse> for DisableResponse {}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DispatchResponse {
     status: i32
 }
 
-fn serialize<'a, T: Deserialize<'a>>(input: &'a String) -> T {
+impl ReponseSerializable<DispatchResponse> for DispatchResponse {}
+
+fn serialize<'a, T: Deserialize<'a>>(input: &'a str) -> T {
     let response: T =  match serde_json::from_str(input) {
         Ok(v) => v,
         // The error might be due to receiving an error message from the API
@@ -56,28 +73,6 @@ fn serialize<'a, T: Deserialize<'a>>(input: &'a String) -> T {
         }
     };
     response
-}
-
-pub fn serialize_get(input: &String) -> GetResponse {
-    GetResponse {
-        workflow: serialize::<WorkflowReponse>(input),
-    }
-}
-
-pub fn serialize_list(input: &String) -> ListResponse {
-    serialize::<ListResponse>(input)
-}
-
-pub fn serialize_enable(input: &String) -> EnableResponse {
-    serialize::<EnableResponse>(input)
-}
-
-pub fn serialize_disable(input: &String) -> DisableResponse {
-    serialize::<DisableResponse>(input)
-}
-
-pub fn serialize_dispatch(input: &String) -> DispatchResponse {
-    serialize::<DispatchResponse>(input)
 }
 
 #[cfg(test)]
@@ -95,21 +90,21 @@ mod tests {
     #[test]
     fn serialize_enable_response() {
         let input = r#"{"status": 200}"#;
-        let response = serialize_enable(&input.to_string());
+        let response = EnableResponse::serialize_from(input);
         assert_eq!(response.status, 200);
     }
 
     #[test]
     fn serialize_disable_response() {
         let input = r#"{"status": 200}"#;
-        let response = serialize_disable(&input.to_string());
+        let response = DisableResponse::serialize_from(&input.to_string());
         assert_eq!(response.status, 200);
     }
 
     #[test]
     fn serialize_dispatch_response() {
         let input = r#"{"status": 200}"#;
-        let response = serialize_dispatch(&input.to_string());
+        let response = DispatchResponse::serialize_from(&input.to_string());
         assert_eq!(response.status, 200);
     }
 
@@ -118,7 +113,7 @@ mod tests {
         // The input is the exampple response from https://docs.github.com/en/rest/actions/workflows#get-a-workflow
         let input = workflow1();
 
-        let response = serialize_get(&input.to_string());
+        let response = GetResponse::serialize_from(&input.to_string());
         let workflow = response.workflow;
 
         assert_eq!(workflow.id, 161335);
@@ -142,7 +137,7 @@ mod tests {
         input.push_str(workflow2());
         input.push_str("]}");
 
-        let response = serialize_list(&input.to_string());
+        let response = ListResponse::serialize_from(&input.to_string());
         let workflows = response.workflows;
 
         assert_eq!(workflows.len(), 2);
