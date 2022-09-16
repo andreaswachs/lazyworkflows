@@ -1,8 +1,15 @@
-#![deny(warnings)]
+// #![deny(warnings)]
 
 mod config;
+mod workflows;
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), isize> {
     // Load the config file
-    let _config = config::Config::load();
+    let config = config::manager::Config::load();
+
+    // Load the workflows
+    workflows::load(&config).await;
+
+    Ok(())
 }
