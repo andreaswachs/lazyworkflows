@@ -94,6 +94,7 @@ mod tests {
     }
     
     #[test]
+
     fn config_dir_path_should_return_non_empty_path() {
         let path = Config::config_dir_path();
         assert!(!path.to_str().expect("should return non-empty string").is_empty());
