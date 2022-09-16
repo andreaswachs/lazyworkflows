@@ -10,7 +10,7 @@ pub struct Repo {
 }
 
 #[derive(Deserialize, Debug)]
-pub(crate) struct Config {
+pub struct Config {
     pub repos: Vec<Repo>,
 }
 
@@ -94,7 +94,6 @@ mod tests {
     }
     
     #[test]
-
     fn config_dir_path_should_return_non_empty_path() {
         let path = Config::config_dir_path();
         assert!(!path.to_str().expect("should return non-empty string").is_empty());

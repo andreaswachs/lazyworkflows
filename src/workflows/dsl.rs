@@ -1,16 +1,16 @@
 use serde::{Deserialize, Serialize};
 #[derive(Default, Serialize, Deserialize, Debug)]
 pub struct WorkflowReponse {
-    id: i32,
-    node_id: String,
-    name: String,
-    path: String,
-    state: String,
-    created_at: String,
-    updated_at: String,
-    url: String,
-    html_url: String,
-    badge_url: String
+    pub id: i32,
+    pub node_id: String,
+    pub name: String,
+    pub path: String,
+    pub state: String,
+    pub created_at: String,
+    pub updated_at: String,
+    pub url: String,
+    pub html_url: String,
+    pub badge_url: String
 }
 
 pub trait ReponseSerializable<T>
@@ -22,7 +22,7 @@ where for<'a> T: Deserialize<'a> {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GetResponse {
-    workflow: WorkflowReponse,
+    pub workflow: WorkflowReponse,
 }
 
 impl ReponseSerializable<GetResponse> for GetResponse {
@@ -33,22 +33,22 @@ impl ReponseSerializable<GetResponse> for GetResponse {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ListResponse {
-    total_count: i32,
-    workflows: Vec<WorkflowReponse>,
+    pub total_count: i32,
+    pub workflows: Vec<WorkflowReponse>,
 }
 
 impl ReponseSerializable<ListResponse> for ListResponse {}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EnableResponse {
-    status: i32
+    pub status: i32
 }
 
 impl ReponseSerializable<EnableResponse> for EnableResponse {}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DisableResponse {
-    status: i32
+    pub status: i32
 }
 
 
@@ -56,7 +56,7 @@ impl ReponseSerializable<DisableResponse> for DisableResponse {}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DispatchResponse {
-    status: i32
+    pub status: i32
 }
 
 impl ReponseSerializable<DispatchResponse> for DispatchResponse {}

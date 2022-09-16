@@ -62,6 +62,7 @@ pub struct Workflows {
 
 pub async fn load(config: &config::manager::Config) -> Workflows {
     let mut requests = Vec::new();
+
     for repo in config.repos.iter() {
         requests.push(api::list(&repo));
     }
@@ -70,6 +71,10 @@ pub async fn load(config: &config::manager::Config) -> Workflows {
 
     for request in finished_requests {
         println!("{:?}", request);
+        for workflow in request.workflows {
+
+
+        }
     }
 
     Workflows {
