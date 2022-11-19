@@ -1,7 +1,6 @@
 package appconfig
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -23,66 +22,51 @@ type AppConfig struct {
 	Repos []Repo
 }
 
-// Implementation of repoConfig interface on struct repo
-func (r *Repo) GetToken() string {
-	return r.Token
-}
-
-func (r *Repo) GetOwner() string {
-	return r.Owner
-}
-
-func (r *Repo) GetRepo() string {
-	return r.Repo
-}
-
-// Implementation of appConfig on struct appConfig
-func (c *AppConfig) GetRepos() []Repo {
-	return c.Repos
-}
-
-func (c *AppConfig) GetRepoWithRepo(name string) (Repo, error) {
-	return Repo{}, errors.New("not implemented yet")
-}
-
-func (c *AppConfig) GetRepoWithOwner(owner string) (Repo, error) {
-	return Repo{}, errors.New("not implemented yet")
-}
-
 func (c *AppConfig) Load() error {
+	// Do some initial configuration to enable reading the config file
+	config.AddDriver(yamlv3.Driver)
+
+	// Ensures that the directory path before the config file exists
 	configPath := filepath.Join(xdg.DataHome, meta.AppName)
 	if err := ensureCreated(configPath); err != nil {
 		return err
 	}
 
-	config.AddDriver(yamlv3.Driver)
+	// Cread the config file or create it. If it didn't exist, it will be created
+	// and error out to encourage the user to fill it out
 	configFilePath := filepath.Join(configPath, meta.ConfigFileName)
-
-	contents, err := os.ReadFile(configFilePath)
+	contents, err := readConfig(configFilePath)
 	if err != nil {
-		file, err := os.Create(configFilePath)
-		defer file.Close()
-		if err != nil {
-			return err
-		}
 		return err
 	}
 
-	fmt.Printf("Contents: %v\n", string(contents))
-
-	err = yaml.Unmarshal(contents, c)
-	if err != nil {
-		fmt.Printf("Error occurred: %v\n", err)
-		return err
+	// Unmarshal/deserialize the config file, turning it into our app config struct
+	if err = yaml.Unmarshal(contents, c); err != nil {
+		return fmt.Errorf("while reading the config.yml file, an error occured: %w", err)
 	}
-
-	fmt.Printf("Repos: %v\n", c.Repos)
 
 	return nil
 }
 
 func New() *AppConfig {
 	return &AppConfig{}
+}
+
+// Reads the config file or creates it if it doesn't exist,
+// given the path to the config file
+func readConfig(configFilePath string) ([]byte, error) {
+	contents, err := os.ReadFile(configFilePath)
+	if err != nil {
+		return make([]byte, 0), fmt.Errorf("could not read config file: %w", err)
+	}
+
+	file, err := os.Create(configFilePath)
+	if err != nil {
+		return make([]byte, 0), fmt.Errorf("could not create config file: %w", err)
+	}
+
+	file.Close()
+	return contents, nil
 }
 
 // Ensures that the full path given is created or fails
