@@ -29,7 +29,7 @@ func (c *AppConfig) Load() error {
 	// Ensures that the directory path before the config file exists
 	configPath := filepath.Join(xdg.DataHome, meta.AppName)
 	if err := ensureCreated(configPath); err != nil {
-		fmt.Fprintf(os.Stderr, "Could not create config dir: %v", err)
+		fmt.Fprintf(os.Stderr, "Could not create config dir: %v\n", err)
 		return err
 	}
 
@@ -38,13 +38,13 @@ func (c *AppConfig) Load() error {
 	configFilePath := filepath.Join(configPath, meta.ConfigFileName)
 	contents, err := readConfig(configFilePath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not read config file: %v", err)
+		fmt.Fprintf(os.Stderr, "Could not read config file: %v\n", err)
 		return err
 	}
 
 	// Unmarshal/deserialize the config file, turning it into our app config struct
 	if err = yaml.Unmarshal(contents, c); err != nil {
-		fmt.Fprintf(os.Stderr, "while reading the %s file, an error occurred: %v", configFilePath, err)
+		fmt.Fprintf(os.Stderr, "while reading the %s file, an error occurred: %v\n", configFilePath, err)
 		return err
 	}
 
@@ -62,18 +62,18 @@ func readConfig(configFilePath string) ([]byte, error) {
 	if err != nil {
 		file, err := os.Create(configFilePath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Could not create config file: %v", err)
+			fmt.Fprintf(os.Stderr, "Could not create config file: %v\n", err)
 			return make([]byte, 0), err
 		}
 
 		file.Close()
-		fmt.Printf("Config file created at %s. Please fill it out and try again.", configFilePath)
-		return make([]byte, 0), err
+		fmt.Printf("Config file created at %s. Please fill it out and try again.\n", configFilePath)
+		os.Exit(0) // Exit this is not an error, but the program cannot continue
 	}
 
 	file, err := os.Create(configFilePath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not create config file: %v", err)
+		fmt.Fprintf(os.Stderr, "Could not create config file: %v\n", err)
 		return make([]byte, 0), err
 	}
 
@@ -85,10 +85,10 @@ func readConfig(configFilePath string) ([]byte, error) {
 func ensureCreated(configPath string) error {
 	if _, err := os.Stat(configPath); err != nil {
 		if err = os.MkdirAll(configPath, os.ModePerm); err != nil {
-			fmt.Fprintf(os.Stderr, "Could not create config dir at location: %s. Full error: %v", configPath, err)
+			fmt.Fprintf(os.Stderr, "Could not create config dir at location: %s. Full error: %v\n", configPath, err)
 			return err
 		}
-		fmt.Fprintf(os.Stderr, "could not query file system for existence of config dir: %s. Full error message: %v", configPath, err)
+		fmt.Fprintf(os.Stderr, "could not query file system for existence of config dir: %s. Full error message: %v\n", configPath, err)
 		return err
 	}
 
