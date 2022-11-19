@@ -14,7 +14,7 @@ func main() {
 		log.Fatalf("Could not load config file")
 	}
 
-	for repo := range config.GetRepos() {
+	for repo := range config.Repos {
 		log.Printf("I got a new repo: %v\n", repo)
 	}
 }
