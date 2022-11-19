@@ -67,7 +67,7 @@ func readConfig(configFilePath string) ([]byte, error) {
 		}
 
 		file.Close()
-		fmt.Fprintf(os.Stderr, "Config file created at %s. Please fill it out and try again. System error: %v", configFilePath, err)
+		fmt.Printf("Config file created at %s. Please fill it out and try again.", configFilePath)
 		return make([]byte, 0), err
 	}
 
