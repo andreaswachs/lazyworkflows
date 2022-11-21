@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	appConfig "github.com/andreaswachs/lazyworkflows/appconfig"
 )
@@ -11,7 +13,8 @@ func main() {
 
 	err := config.Load()
 	if err != nil {
-		log.Fatalf("Could not load config file")
+		fmt.Fprintf(os.Stderr, "Could not load config file. See error msg.")
+		os.Exit(0)
 	}
 
 	for repo := range config.Repos {
