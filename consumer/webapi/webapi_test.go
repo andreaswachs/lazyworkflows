@@ -2,12 +2,35 @@ package webapi
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/andreaswachs/lazyworkflows/appconfig"
 	"github.com/joho/godotenv"
 )
+
+// Setup and mocking
+
+type MockRoundTripper func(r *http.Request) *http.Response
+
+func (f MockRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
+	return f(r), nil
+}
+
+func SetupSuite(t *testing.T) func(t *testing.T) {
+	return func(t *testing.T) {
+		InjectHttpClient(&http.Client{
+			Transport: MockRoundTripper(func(r *http.Request) *http.Response {
+				return &http.Response{
+					StatusCode: 200,
+					Body:       io.NopCloser(strings.NewReader("Hello, World!")),
+				}
+			})})
+	}
+}
 
 func TestListCanGetListOfWorkflows(t *testing.T) {
 	// Test setup
@@ -53,6 +76,10 @@ func TestGetCanGetAWorkflow(t *testing.T) {
 	if workflow.Name != "Unit Tests on Push" { // Remember to change the name check after creating the testing workflow
 		t.Errorf("error: wrong workflow returned: %v", workflow.Name)
 	}
+}
+
+func TestDispatchCanGetAWorkflow(t *testing.T) {
+
 }
 
 func getTestingRepo(token string) appconfig.Repo {

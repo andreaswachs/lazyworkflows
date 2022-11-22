@@ -12,6 +12,9 @@ import (
 
 type action uint8
 
+// The http client is a global variable and thus able to get mocked by tests
+var sharedHttpClient *http.Client
+
 const (
 	enable action = iota
 	disable
@@ -77,9 +80,18 @@ func (w *WebApi) Disable(repo appconfig.Repo, id string) (response.Disable, erro
 	return response.Disable{}, nil
 }
 
-func doRequest(target action, repo appconfig.Repo, id string) (string, error) {
-	client := http.Client{}
+func GetHttpClient() *http.Client {
+	if sharedHttpClient == nil {
+		sharedHttpClient = http.DefaultClient
+	}
+	return sharedHttpClient
+}
 
+func InjectHttpClient(injectedClient *http.Client) {
+	sharedHttpClient = injectedClient
+}
+
+func doRequest(target action, repo appconfig.Repo, id string) (string, error) {
 	url, err := newWebApiRequest().
 		withRepo(repo).
 		withId(id).
@@ -114,7 +126,7 @@ func doRequest(target action, repo appconfig.Repo, id string) (string, error) {
 	req.Header.Set("Accept", "application/vnd.github+json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", repo.Token))
 
-	resp, err := client.Do(req)
+	resp, err := sharedHttpClient.Do(req)
 	if err != nil {
 		return "", err
 	}
