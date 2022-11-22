@@ -2,10 +2,12 @@ package response
 
 import (
 	"testing"
+
+	"github.com/andreaswachs/lazyworkflows/test_resources"
 )
 
 func TestCanDeserializeGetResponse(t *testing.T) {
-	responseText := getWorkflow1()
+	responseText := test_resources.Workflow1
 
 	var responseObj Get
 	FromString(responseText, &responseObj)
@@ -40,7 +42,7 @@ func TestCanDeserializeGetResponse(t *testing.T) {
 }
 
 func TestCanDeserializeListResponse(t *testing.T) {
-	responseText := listWorkflows()
+	responseText := test_resources.ListResponse
 
 	var responseObj List
 	FromString(responseText, &responseObj)
@@ -55,7 +57,7 @@ func TestCanDeserializeListResponse(t *testing.T) {
 }
 
 func TestCanDeserializeWorkflowDispatchResponse(t *testing.T) {
-	responseText := getStatus200Response()
+	responseText := test_resources.Status200Response
 
 	var responseObj Dispatch
 
@@ -67,7 +69,7 @@ func TestCanDeserializeWorkflowDispatchResponse(t *testing.T) {
 }
 
 func TestCanDeserializeWorkflowEnableResponse(t *testing.T) {
-	responseText := getStatus200Response()
+	responseText := test_resources.Status200Response
 
 	var responseObj Enable
 
@@ -79,7 +81,7 @@ func TestCanDeserializeWorkflowEnableResponse(t *testing.T) {
 }
 
 func TestCanDeserializeWorkflowDisableResponse(t *testing.T) {
-	responseText := getStatus200Response()
+	responseText := test_resources.Status200Response
 
 	var responseObj Disable
 
@@ -88,26 +90,4 @@ func TestCanDeserializeWorkflowDisableResponse(t *testing.T) {
 	if responseObj.Status != 200 {
 		t.Fatalf("Expected status to be 200, but got %v", responseObj.Status)
 	}
-}
-
-// Actual response text from GitHub API
-//
-func getWorkflow1() string {
-	return `{"id":161335,"node_id":"MDg6V29ya2Zsb3cxNjEzMzU=","name":"CI","path":".github/workflows/blank.yaml","state":"active","created_at":"2020-01-08T23:48:37.000-08:00","updated_at":"2020-01-08T23:50:21.000-08:00","url":"https://api.github.com/repos/octo-org/octo-repo/actions/workflows/161335","html_url":"https://github.com/octo-org/octo-repo/blob/master/.github/workflows/161335","badge_url":"https://github.com/octo-org/octo-repo/workflows/CI/badge.svg"}`
-}
-
-func getWorkflow2() string {
-	return `{"id":20,"node_id":"MDg6V29ya2Zsb3cxNjEzMzU=","name":"CD","path":".github/workflows/other.yaml","state":"disabled","created_at":"2020-01-08T23:48:37.000-08:00","updated_at":"2020-01-08T23:50:21.000-08:00","url":"https://api.github.com/repos/octo-org/octo-repo/actions/workflows/161335","html_url":"https://github.com/octo-org/octo-repo/blob/master/.github/workflows/161335","badge_url":"https://github.com/octo-org/octo-repo/workflows/CI/badge.svg"}`
-}
-
-func getStatus200Response() string {
-	return `{"status": 200}`
-}
-
-func getRealListWorkflows() string {
-	return "{\"total_count\":1,\"workflows\":[{\"id\":33451598,\"node_id\":\"W_kwDOH0TxRs4B_m5O\",\"name\":\"Unit Tests on Push\",\"path\":\".github/workflows/unit-tests-on-push.yml\",\"state\":\"active\",\"created_at\":\"2022-08-28T08:55:14.000+02:00\",\"updated_at\":\"2022-08-28T10:26:51.000+02:00\",\"url\":\"https://api.github.com/repos/andreaswachs/lazyworkflows/actions/workflows/33451598\",\"html_url\":\"https://github.com/andreaswachs/lazyworkflows/blob/main/.github/workflows/unit-tests-on-push.yml\",\"badge_url\":\"https://github.com/andreaswachs/lazyworkflows/workflows/Unit%20Tests%20on%20Push/badge.svg\"}]}"
-}
-
-func listWorkflows() string {
-	return getRealListWorkflows()
 }
