@@ -67,17 +67,50 @@ func (w *WebApi) Get(repo appconfig.Repo, id string) (response.Workflow, error) 
 
 // Dispatch triggers a workflow for a given repo
 func (w *WebApi) Dispatch(repo appconfig.Repo, id string) (response.Dispatch, error) {
-	return response.Dispatch{}, nil
+	dispatchResponse, err := doRequest(dispatch, repo, id)
+	if err != nil {
+		return response.Dispatch{}, err
+	}
+
+	dispatchResponseObj := response.Dispatch{}
+	err = response.FromString(dispatchResponse, &dispatchResponseObj)
+	if err != nil {
+		return response.Dispatch{}, err
+	}
+
+	return dispatchResponseObj, nil
 }
 
 // Enable enables a workflow for a given repo
 func (w *WebApi) Enable(repo appconfig.Repo, id string) (response.Enable, error) {
-	return response.Enable{}, nil
+	enableResponse, err := doRequest(enable, repo, id)
+	if err != nil {
+		return response.Enable{}, err
+	}
+
+	enableResponseObj := response.Enable{}
+	err = response.FromString(enableResponse, &enableResponseObj)
+	if err != nil {
+		return response.Enable{}, err
+	}
+
+	return enableResponseObj, nil
 }
 
 // Disable disables a workflow for a given repo
 func (w *WebApi) Disable(repo appconfig.Repo, id string) (response.Disable, error) {
-	return response.Disable{}, nil
+	disableResponse, err := doRequest(disable, repo, id)
+	if err != nil {
+		return response.Disable{}, err
+	}
+
+	disableResponseObj := response.Disable{}
+	err = response.FromString(disableResponse, &disableResponseObj)
+	if err != nil {
+		return response.Disable{}, err
+	}
+
+	return disableResponseObj, nil
 }
 
 func GetHttpClient() *http.Client {
