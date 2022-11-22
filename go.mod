@@ -11,6 +11,7 @@ require (
 require (
 	github.com/aymanbagabas/go-osc52 v1.0.3 // indirect
 	github.com/charmbracelet/bubbletea v0.23.1 // indirect
+	github.com/charmbracelet/lipgloss v0.6.0 // indirect
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/gookit/goutil v0.5.15 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
