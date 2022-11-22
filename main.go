@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	appConfig "github.com/andreaswachs/lazyworkflows/appconfig"
+	"github.com/andreaswachs/lazyworkflows/tui"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 func main() {
@@ -17,7 +18,10 @@ func main() {
 		os.Exit(0)
 	}
 
-	for repo := range config.Repos {
-		log.Printf("I got a new repo: %v\n", repo)
+	p := tea.NewProgram(tui.InitialModel(*config))
+	if _, err := p.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "Could not start program. See error msg.")
+		os.Exit(0)
 	}
+
 }
