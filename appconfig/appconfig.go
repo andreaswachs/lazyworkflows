@@ -71,13 +71,6 @@ func readConfig(configFilePath string) ([]byte, error) {
 		os.Exit(0) // Exit this is not an error, but the program cannot continue
 	}
 
-	file, err := os.Create(configFilePath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not create config file: %v\n", err)
-		return make([]byte, 0), err
-	}
-
-	file.Close()
 	return contents, nil
 }
 
