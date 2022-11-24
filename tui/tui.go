@@ -3,7 +3,6 @@ package tui
 // TODO: UI is unresponsive.. check out https://github.com/charmbracelet/bubbletea/blob/79c76c680b1a6bae9cd9bc918c1d8eb336ee4ceb/examples/list-fancy/main.go
 // to see what we're not doing right
 import (
-	"fmt"
 	"math"
 	"strings"
 
@@ -26,7 +25,6 @@ type model struct {
 	selectedTab tabState
 	cursorPos   map[tabState]int
 	fullTable   table.Model
-	// displayedTable table.Model
 }
 
 // InitialModel returns an inital model to bootstrap the UI
@@ -38,22 +36,23 @@ func InitialModel(appconfig appconfig.AppConfig) model {
 	cursorPos[workflow] = 0
 
 	// Load the table data
-
+	// TODO: the table needs to be updated between frames
+	// as to make the width of the last column dynamic
 	columns := []table.Column{
 		{Title: "Owner", Width: 10},
-		{Title: "Repo", Width: 10},
-		{Title: "Name", Width: 40},
+		{Title: "Repo", Width: 20},
+		{Title: "Name", Width: 80}, // This width needs to be dynamic
 	}
 
 	rows := []table.Row{}
-
 	api := consumer.New()
+
+	// This should not be the responsibility of the UI to handle workflows
 	for _, repo := range appconfig.Repos {
 		workflows, err := api.List(repo)
 		if err != nil {
 			panic(err)
 		}
-		rows = append(rows, table.Row{repo.Owner, repo.Repo, "Placeholder"})
 
 		for _, workflow := range workflows {
 			rows = append(rows, table.Row{repo.Owner, repo.Repo, workflow.Name})
@@ -81,6 +80,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		width = msg.Width
+		m.fullTable.SetWidth(msg.Width - 2)
 		return m, nil
 	// Is it a key press?
 	case tea.KeyMsg:
@@ -88,11 +88,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
-		case "j":
-			moveCursorDown(&m)
+		case "j", "down":
+			m.fullTable.MoveDown(1)
 			return m, nil
-		case "k":
-			moveCursorUp(&m)
+		case "k", "up":
+			m.fullTable.MoveUp(1)
 			return m, nil
 		case "h", "left":
 			m.selectedTab = previousTab(m.selectedTab)
@@ -154,24 +154,11 @@ func renderBody(builder *strings.Builder, m *model) {
 }
 
 func renderOverview(builder *strings.Builder, m *model) {
-	var listContent []string
-	for i, repo := range m.conf.Repos {
-		text := fmt.Sprintf("%s/%s", repo.Owner, repo.Repo)
-		var label string
-		if i == m.cursorPos[overview] {
-			label = listSelected(text)
-		} else {
-			label = listItem(text)
-		}
-		listContent = append(listContent, label)
-	}
-
-	list := lipgloss.JoinVertical(lipgloss.Top, listContent...)
-	builder.WriteString(list)
+	builder.WriteString(baseStyle.Render(m.fullTable.View()))
 }
 
 func renderWorkflow(builder *strings.Builder, m *model) {
-	builder.WriteString(baseStyle.Render(m.fullTable.View()))
+	builder.WriteString("TODO\n")
 }
 
 func tabStateToTab(selectedTab tabState) string {
@@ -219,7 +206,6 @@ func moveCursorDown(m *model) {
 
 func moveCursorUp(m *model) {
 	if m.selectedTab == overview {
-
 		if m.cursorPos[m.selectedTab] > 0 {
 			m.cursorPos[m.selectedTab]--
 		} else {
