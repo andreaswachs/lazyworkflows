@@ -1,7 +1,10 @@
 package tui
 
 // import lipgloss
-import "github.com/charmbracelet/lipgloss"
+import (
+	"github.com/charmbracelet/bubbles/table"
+	"github.com/charmbracelet/lipgloss"
+)
 
 // Current style lifted from the Lipgloss example code
 // Full credits: https://github.com/charmbracelet/lipgloss/blob/master/example/main.go
@@ -27,6 +30,9 @@ var (
 
 	url = lipgloss.NewStyle().Foreground(special).Render
 
+	baseStyle = lipgloss.NewStyle().
+			BorderStyle(lipgloss.NormalBorder()).
+			BorderForeground(lipgloss.Color("240"))
 	// Tabs.
 
 	activeTabBorder = lipgloss.Border{
@@ -183,4 +189,20 @@ var (
 	// Page.
 
 	docStyle = lipgloss.NewStyle().Padding(1, 2, 1, 2)
+
+	// table
+	tableStyle = table.DefaultStyles()
 )
+
+func initStyles() {
+	tableStyle.Header = tableStyle.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		BorderBottom(true).
+		Bold(false)
+	tableStyle.Selected = tableStyle.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("57")).
+		Bold(false)
+
+}

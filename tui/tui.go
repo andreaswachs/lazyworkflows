@@ -9,8 +9,7 @@ import (
 
 	"github.com/andreaswachs/lazyworkflows/appconfig"
 	"github.com/andreaswachs/lazyworkflows/consumer"
-	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -22,77 +21,55 @@ const (
 	workflow
 )
 
-type item struct {
-	title       string
-	description string
-}
-
-func (i item) Title() string       { return i.title }
-func (i item) Description() string { return i.description }
-func (i item) FilterValue() string { return i.title }
-
-type listKeyMap struct {
-	toggleSpinner    key.Binding
-	toggleTitleBar   key.Binding
-	toggleStatusBar  key.Binding
-	togglePagination key.Binding
-	toggleHelpMenu   key.Binding
-	insertItem       key.Binding
-}
-
 type model struct {
-	conf         appconfig.AppConfig
-	selectedTab  tabState
-	cursorPos    map[tabState]int
-	keys         *listKeyMap
-	workflowList list.Model
-	delegateKeys *delegateKeyMap
+	conf        appconfig.AppConfig
+	selectedTab tabState
+	cursorPos   map[tabState]int
+	fullTable   table.Model
+	// displayedTable table.Model
 }
 
 // InitialModel returns an inital model to bootstrap the UI
 func InitialModel(appconfig appconfig.AppConfig) model {
+	initStyles()
+
 	cursorPos := make(map[tabState]int)
 	cursorPos[overview] = 0
 	cursorPos[workflow] = 0
 
-	var (
-		delegateKeys = newDelegateKeyMap()
-		listKeys     = newListKeyMap()
-	)
+	// Load the table data
 
-	delegate := newItemDelegate(delegateKeys)
+	columns := []table.Column{
+		{Title: "Owner", Width: 10},
+		{Title: "Repo", Width: 10},
+		{Title: "Name", Width: 40},
+	}
 
-	// TODO: this needs to be moved somewhere else!!!
-	apiConsumer := consumer.New()
-	var itemList []list.Item
+	rows := []table.Row{}
 
+	api := consumer.New()
 	for _, repo := range appconfig.Repos {
-		workflows, err := apiConsumer.List(repo)
+		workflows, err := api.List(repo)
 		if err != nil {
 			panic(err)
 		}
+		rows = append(rows, table.Row{repo.Owner, repo.Repo, "Placeholder"})
 
 		for _, workflow := range workflows {
-			itemList = append(itemList, item{
-				title:       workflow.Name,
-				description: workflow.Path,
-			})
+			rows = append(rows, table.Row{repo.Owner, repo.Repo, workflow.Name})
 		}
 	}
-	workflowList := list.New(itemList, delegate, 0, 0)
-	workflowList.Title = "Workflows"
-	workflowList.Styles.Title = titleStyle
-	workflowList.AdditionalFullHelpKeys = func() []key.Binding {
-		return []key.Binding{
-			listKeys.toggleSpinner,
-			listKeys.toggleTitleBar,
-			listKeys.toggleStatusBar,
-			listKeys.togglePagination,
-			listKeys.toggleHelpMenu,
-			listKeys.insertItem,
-		}
-	}
-	return model{workflowList: workflowList, keys: listKeys, delegateKeys: delegateKeys, conf: appconfig, selectedTab: workflow, cursorPos: cursorPos}
+
+	fullTable := table.New(
+		table.WithColumns(columns),
+		table.WithRows(rows),
+		table.WithFocused(true),
+		table.WithHeight(10),
+	)
+
+	fullTable.SetStyles(tableStyle)
+
+	return model{conf: appconfig, selectedTab: workflow, cursorPos: cursorPos, fullTable: fullTable}
 }
 
 func (m model) Init() tea.Cmd {
@@ -104,34 +81,24 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		width = msg.Width
-		h, v := appStyle.GetFrameSize()
-		m.workflowList.SetSize(msg.Width-h, msg.Height-v)
 		return m, nil
 	// Is it a key press?
 	case tea.KeyMsg:
-		if m.workflowList.FilterState() == list.Filtering {
-			break
-		}
-		// Cool, what was the actual key pressed?
 
-		switch {
-		case key.Matches(msg, m.keys.toggleSpinner):
-			cmd := m.workflowList.ToggleSpinner()
-			return m, cmd
-
-		case key.Matches(msg, m.keys.toggleTitleBar):
-			v := !m.workflowList.ShowTitle()
-			m.workflowList.SetShowTitle(v)
-			m.workflowList.SetShowFilter(v)
-			m.workflowList.SetFilteringEnabled(v)
+		switch msg.String() {
+		case "ctrl+c", "q":
+			return m, tea.Quit
+		case "j":
+			moveCursorDown(&m)
 			return m, nil
-
-		case key.Matches(msg, m.keys.toggleStatusBar):
-			m.workflowList.SetShowStatusBar(!m.workflowList.ShowStatusBar())
+		case "k":
+			moveCursorUp(&m)
 			return m, nil
-
-		case key.Matches(msg, m.keys.toggleHelpMenu):
-			m.workflowList.SetShowHelp(!m.workflowList.ShowHelp())
+		case "h", "left":
+			m.selectedTab = previousTab(m.selectedTab)
+			return m, nil
+		case "l", "right":
+			m.selectedTab = nextTab(m.selectedTab)
 			return m, nil
 		}
 
@@ -145,6 +112,7 @@ func (m model) View() string {
 	builder := strings.Builder{}
 
 	renderTabs(&builder, &m)
+	builder.WriteString("\n")
 	renderBody(&builder, &m)
 
 	builder.WriteString("\n")
@@ -203,7 +171,7 @@ func renderOverview(builder *strings.Builder, m *model) {
 }
 
 func renderWorkflow(builder *strings.Builder, m *model) {
-	builder.WriteString(m.workflowList.View())
+	builder.WriteString(baseStyle.Render(m.fullTable.View()))
 }
 
 func tabStateToTab(selectedTab tabState) string {
@@ -260,35 +228,5 @@ func moveCursorUp(m *model) {
 	} else {
 		// TODO: Implement bounds check for other tabs
 		m.cursorPos[m.selectedTab]--
-	}
-}
-
-// Credits: https://github.com/charmbracelet/bubbletea/blob/master/examples/list-fancy/main.go
-func newListKeyMap() *listKeyMap {
-	return &listKeyMap{
-		insertItem: key.NewBinding(
-			key.WithKeys("a"),
-			key.WithHelp("a", "add item"),
-		),
-		toggleSpinner: key.NewBinding(
-			key.WithKeys("s"),
-			key.WithHelp("s", "toggle spinner"),
-		),
-		toggleTitleBar: key.NewBinding(
-			key.WithKeys("T"),
-			key.WithHelp("T", "toggle title"),
-		),
-		toggleStatusBar: key.NewBinding(
-			key.WithKeys("S"),
-			key.WithHelp("S", "toggle status"),
-		),
-		togglePagination: key.NewBinding(
-			key.WithKeys("P"),
-			key.WithHelp("P", "toggle pagination"),
-		),
-		toggleHelpMenu: key.NewBinding(
-			key.WithKeys("H"),
-			key.WithHelp("H", "toggle help"),
-		),
 	}
 }
