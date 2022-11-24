@@ -159,7 +159,7 @@ func doRequest(target action, repo appconfig.Repo, id string) (string, error) {
 	req.Header.Set("Accept", "application/vnd.github+json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", repo.Token))
 
-	resp, err := sharedHttpClient.Do(req)
+	resp, err := GetHttpClient().Do(req)
 	if err != nil {
 		return "", err
 	}
