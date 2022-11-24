@@ -7,6 +7,6 @@ CLI tool for managing GitHub workflows. Heavily inspired by lazygit.
 - [X] Configuration management
 - [X] GitHub RESTful API modelling
 - [X] GitHub RESTful API consumer
-- [ ] Terminal UI
+- [ ] Terminal UI, [ ] Workflows stored in memory
 - [ ] Management/Orchestrator package to wrap UI and API consumer
 - [ ] ...?
