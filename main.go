@@ -5,6 +5,7 @@ import (
 	"os"
 
 	appConfig "github.com/andreaswachs/lazyworkflows/appconfig"
+	"github.com/andreaswachs/lazyworkflows/storage"
 	"github.com/andreaswachs/lazyworkflows/tui"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -12,9 +13,17 @@ import (
 func main() {
 	config := appConfig.New()
 
+	// Load the configuration from the config file
 	err := config.Load()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Could not load config file. See error msg.")
+		os.Exit(0)
+	}
+
+	// Start the storage service
+	err = storage.Start()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Could not start storage service. See error msg.")
 		os.Exit(0)
 	}
 
